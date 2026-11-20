@@ -1,74 +1,105 @@
-# Modelado de SAW Rayleigh y cinética de plasma de pulverización catódica
+# Modelado multifísica de SAW en AlN/Si(111) y cinética de plasma
 
-Repositorio de física computacional para modelar películas delgadas de nitruro de aluminio (AlN) y nitruro de aluminio dopado con escandio (ScₓAl₁₋ₓN) sobre sustratos de Si(111), con aplicación potencial en sensores MEMS de ondas acústicas superficiales (SAW).
-
-## Alcance actual
-
-El cuaderno implementado estudia la cinética de transporte de especies pulverizadas en un plasma reactivo Ar/N₂. El análisis compara el camino libre medio con la distancia blanco-sustrato y estima la probabilidad de colisión en fase gaseosa. El modelado de modos SAW y de propiedades de los materiales forma parte del objetivo general del repositorio, pero todavía no está incluido en los resultados disponibles.
+Repositorio de física computacional para estudiar heteroestructuras piezoeléctricas de nitruro de aluminio (AlN) sobre silicio cristalográfico Si(111). Incluye un modelo de transporte de especies pulverizadas y simulaciones de ondas acústicas superficiales (SAW) tipo Rayleigh, con aplicación potencial en sensores MEMS.
 
 ## Contenido
 
-### `notebooks/01_sputtering_plasma_kinetics.ipynb`
+| Cuaderno | Contenido principal |
+| --- | --- |
+| [`01_sputtering_plasma_kinetics.ipynb`](notebooks/01_sputtering_plasma_kinetics.ipynb) | Camino libre medio y probabilidad de colisión en una descarga reactiva Ar/N₂ |
+| [`02_simulacion_saw_aln_si111.ipynb`](notebooks/02_simulacion_saw_aln_si111.ipynb) | Tensores constitutivos, transformación de Bond, modo de Rayleigh y dispersión SAW |
 
-Cuaderno paso a paso que:
+Los cálculos compartidos están implementados en [`src/plasma_kinetics.py`](src/plasma_kinetics.py) y [`src/rayleigh_confinement.py`](src/rayleigh_confinement.py).
 
-1. Define las condiciones de operación y las constantes del modelo.
-2. Calcula el camino libre medio para distintos valores de presión y temperatura.
-3. Estima la probabilidad de colisión para varias distancias blanco-sustrato.
-4. Genera las figuras de los barridos en unidades de cámara (Torr) y del Sistema Internacional (Pa).
+## 1. Cinética del plasma de pulverización
 
-Los cálculos reutilizan las funciones de [`src/plasma_kinetics.py`](src/plasma_kinetics.py).
+El primer cuaderno modela el transporte balístico frente al régimen difusivo de especies pulverizadas en atmósfera reactiva Ar/N₂ durante el crecimiento de películas delgadas de AlN.
 
-### Fundamento teórico
-
-El camino libre medio se aproxima suponiendo partículas de gas con radio efectivo `r_mean` y una distribución homogénea:
+El camino libre medio se aproxima mediante
 
 $$
-\lambda = \frac{k_B T}{\sqrt{2}\,4\pi r_{\text{mean}}^2 P}
+\lambda=\frac{k_B T}{\sqrt{2}\,4\pi r_{\text{mean}}^2P}
 $$
 
-donde `k_B` es la constante de Boltzmann, `T` la temperatura absoluta y `P` la presión. La probabilidad de que una especie experimente al menos una colisión al recorrer la distancia blanco-sustrato `D_TS` se modela como:
+donde $k_B$ es la constante de Boltzmann, $T$ la temperatura absoluta, $P$ la presión y $r_{\text{mean}}=1.5\times10^{-10}$ m el radio efectivo utilizado en el modelo.
+
+La probabilidad de al menos una colisión durante el recorrido blanco-sustrato $D_{TS}$ es
 
 $$
-P_c = 1 - \exp\left(-\frac{D_{TS}}{\lambda}\right)
+P_c=1-\exp\left(-\frac{D_{TS}}{\lambda}\right).
 $$
 
-Un camino libre medio mayor que `D_TS` corresponde a menor probabilidad de colisión y transporte más balístico. Al aumentar la presión, `λ` disminuye y `P_c` aumenta, lo que representa un transporte más colisionado o difusivo.
+### Barridos explorados
 
-### Parámetros explorados
+- Presión en cámara: 1–30 mTorr, temperaturas de 500–650 °C y distancias blanco-sustrato de 6, 8, 10 y 12 cm.
+- Presión SI: 0.1–4.0 Pa, temperaturas de 600 y 650 °C y distancias de 3, 4 y 5 cm.
 
-- Radio efectivo: `r_mean = 1.5 × 10⁻¹⁰ m`.
-- Barrido en unidades de cámara: presión de `1–30 mTorr`, temperaturas de `500–650 °C` y distancias blanco-sustrato de `6, 8, 10 y 12 cm`.
-- Barrido SI: presión de `0.1–4.0 Pa`, temperaturas de `873.15 K` y `923.15 K` (600 y 650 °C) y distancias de `3, 4 y 5 cm`.
+### Resultados representativos
 
-### Resultados obtenidos
+- Entre 1 y 30 mTorr, $\lambda$ disminuye aproximadamente de 20–24 cm a 0.67–0.80 cm.
+- A 650 °C, $P_c$ pasa de aproximadamente 22–39 % a 1 mTorr a más de 99.9 % a 30 mTorr.
+- En el barrido SI, $\lambda$ disminuye de aproximadamente 31.9 cm a 0.1 Pa a 0.80 cm a 4 Pa.
+- Para distancias de 3–5 cm, $P_c$ aumenta aproximadamente de 9–15.3 % a 97.7–99.9 %.
 
-- En el barrido de `1–30 mTorr`, el camino libre medio va aproximadamente de `20–24 cm` a `0.67–0.80 cm` para las temperaturas estudiadas.
-- A `650 °C`, para distancias de `6–12 cm`, la probabilidad de colisión pasa de aproximadamente `22–39 %` a `1 mTorr` a más de `99.9 %` a `30 mTorr`.
-- En el barrido SI, a `650 °C`, `λ` disminuye de aproximadamente `31.9 cm` a `0.1 Pa` a `0.80 cm` a `4 Pa`. Para distancias de `3–5 cm`, `P_c` aumenta de aproximadamente `9–15.3 %` a `97.7–99.9 %`.
+Estos valores son estimaciones del modelo de camino libre medio y no sustituyen una caracterización experimental del proceso de deposición.
 
-Estos resultados son las estimaciones del modelo de camino libre medio y no una validación experimental del proceso de deposición.
+### Figuras de cinética
 
-### Figuras
+![Camino libre medio y probabilidad de colisión en mTorr](images/sputtering_kinetics_torr.png)
 
-Las imágenes se generan en resolución de 300 DPI al ejecutar el cuaderno.
+*Barrido de presión en unidades de cámara.*
 
-**Barrido en unidades de cámara:**
+![Camino libre medio y probabilidad de colisión en Pa](images/sputtering_mfp_collision_si.png)
 
-![Camino libre medio y probabilidad de colisión en función de la presión en mTorr](images/sputtering_kinetics_torr.png)
+*Barrido de presión en unidades del Sistema Internacional.*
 
-**Barrido en unidades SI:**
+## 2. Modelado SAW Rayleigh en AlN/Si(111)
 
-![Camino libre medio y probabilidad de colisión en función de la presión en Pa](images/sputtering_mfp_collision_si.png)
+El segundo cuaderno trabaja con:
+
+1. Tensores elásticos de AlN con simetría hexagonal 6 mm y eje $c$ orientado en $Z$.
+2. Matriz piezoeléctrica y permitividad del AlN.
+3. Tensor elástico cúbico del silicio y transformación de Bond hacia la superficie cristalográfica Si(111).
+4. Aproximación semi-analítica del desplazamiento superficial.
+5. Solucionador 1D SAFE / diferencias finitas acoplado con endurecimiento piezoeléctrico.
+
+Para la configuración representativa del cuaderno:
+
+- Longitud de onda de diseño: $\lambda_{\mathrm{SAW}}=4.0$ µm.
+- Espesor de AlN: $h_{\mathrm{AlN}}=0.5$ µm.
+- Espesor normalizado: $h_{\mathrm{AlN}}/\lambda_{\mathrm{SAW}}=0.111$.
+- Silicio Si(111) rotado: $C_{11}=194.40$ GPa, $C_{33}=203.97$ GPa y $C_{44}=60.47$ GPa.
+- Frecuencia de resonancia FDM: 547.10 MHz.
+- Velocidad de fase libre: 4923.92 m/s.
+- Velocidad metalizada: 4927.31 m/s.
+- Acoplamiento electromecánico guardado en el cuaderno: $K^2=-0.138$ %.
+
+El barrido de espesor normalizado cubre $h_{\mathrm{AlN}}/\lambda_{\mathrm{SAW}}$ entre 0.02 y 0.45, mostrando simultáneamente la velocidad de fase y el acoplamiento electromecánico.
+
+### Figuras SAW
+
+![Perfil semi-analítico del modo Rayleigh](images/saw_aln_si111_semianalytical_mode.png)
+
+*Aproximación semi-analítica del confinamiento y perfil de desplazamiento.*
+
+![Modo Rayleigh obtenido con el solucionador FDM](images/saw_aln_si111_fdm_mode.png)
+
+*Modo 1D de Rayleigh para la heteroestructura AlN/Si(111).*
+
+![Dispersión SAW y acoplamiento electromecánico](images/saw_aln_si111_dispersion.png)
+
+*Velocidad de fase y $K^2$ frente al espesor normalizado.*
+
+> Nota: el signo negativo de $K^2$ en la salida representativa se conserva tal como lo calculó el cuaderno (`v_open - v_short`). Debe interpretarse como parte de la aproximación FDM actual y no como una propiedad concluida del material hasta validar completamente las condiciones eléctricas y el esquema numérico.
 
 ## Estructura del repositorio
 
 ```text
 saw-aln-si-multiphysics/
-├── data/          # Parámetros de materiales y resultados de simulación
+├── data/          # Datos auxiliares y resultados
 ├── images/        # Figuras generadas por los cuadernos
-├── notebooks/     # Cuadernos de simulación paso a paso
-├── src/           # Módulos Python reutilizables
+├── notebooks/     # Cuadernos de cinética y SAW
+├── src/           # Funciones Python reutilizables
 ├── LICENSE
 ├── README.md
 └── requirements.txt
@@ -76,11 +107,11 @@ saw-aln-si-multiphysics/
 
 ## Instalación y ejecución
 
-Desde la raíz del repositorio, instala las dependencias y abre Jupyter:
+Desde la raíz del repositorio:
 
 ```bash
 python -m pip install -r requirements.txt
 jupyter notebook
 ```
 
-Ejecuta `notebooks/01_sputtering_plasma_kinetics.ipynb` desde Jupyter. El cuaderno guarda las figuras en `images/`.
+Abre cualquiera de los cuadernos en `notebooks/`. Las figuras se generan y se guardan automáticamente en `images/`.
